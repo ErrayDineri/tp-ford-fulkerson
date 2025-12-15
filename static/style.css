@@ -1170,12 +1170,12 @@ html {
 
 /* Add instruction hint to canvas */
 .graph-container::after {
-    content: 'Click on edge labels to adjust flow values';
+    content: 'Cliquez sur les étiquettes d\'arc pour ajuster les valeurs de flux';
     position: absolute;
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(102, 126, 234, 0.9);
+    background: rgba(37, 99, 235, 0.9);
     color: white;
     padding: 8px 16px;
     border-radius: 20px;

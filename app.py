@@ -122,8 +122,8 @@ class Graph:
 LEVELS = [
     {
         "id": 1,
-        "name": "Simple Path",
-        "description": "Find the maximum flow through a simple linear graph",
+        "name": "Chemin Simple",
+        "description": "Trouvez le flux maximum à travers un graphe linéaire simple",
         "nodes": 4,
         "edges": [
             {"from": 0, "to": 1, "capacity": 10},
@@ -135,8 +135,8 @@ LEVELS = [
     },
     {
         "id": 2,
-        "name": "Parallel Paths",
-        "description": "Two paths to the sink - distribute flow efficiently",
+        "name": "Chemins Parallèles",
+        "description": "Deux chemins vers le puits - distribuez le flux efficacement",
         "nodes": 4,
         "edges": [
             {"from": 0, "to": 1, "capacity": 10},
@@ -149,8 +149,8 @@ LEVELS = [
     },
     {
         "id": 3,
-        "name": "Mixed Network",
-        "description": "Multiple paths with different capacities",
+        "name": "Réseau Mixte",
+        "description": "Plusieurs chemins avec des capacités différentes",
         "nodes": 5,
         "edges": [
             {"from": 0, "to": 1, "capacity": 16},
@@ -168,8 +168,8 @@ LEVELS = [
     },
     {
         "id": 4,
-        "name": "Complex Network",
-        "description": "More complex graph with bottlenecks",
+        "name": "Réseau Complexe",
+        "description": "Graphe plus complexe avec des goulets d'étranglement",
         "nodes": 6,
         "edges": [
             {"from": 0, "to": 1, "capacity": 10},
@@ -187,8 +187,8 @@ LEVELS = [
     },
     {
         "id": 5,
-        "name": "Expert Challenge",
-        "description": "Large network with multiple interdependencies",
+        "name": "Défi Expert",
+        "description": "Grand réseau avec plusieurs interdépendances",
         "nodes": 7,
         "edges": [
             {"from": 0, "to": 1, "capacity": 9},
@@ -261,21 +261,21 @@ def verify_flow():
         "is_valid": is_valid,
         "user_flow": user_flow_value,
         "max_flow": actual_max_flow,
-        "message": "✓ Correct! You found the maximum flow!" if is_valid 
-                   else f"✗ Not quite. You have {user_flow_value} units, but max flow is {actual_max_flow}"
+        "message": "✓ Correct! Vous avez trouvé le flux maximum!" if is_valid 
+                   else f"✗ Pas tout à fait. Vous avez {user_flow_value} unités, mais le flux maximum est {actual_max_flow}"
     })
 
 @app.route('/api/hint/<int:level_id>')
 def get_hint(level_id):
     """Get a hint for the level"""
     hints = {
-        1: "Remember: flow through a path is limited by the minimum capacity edge (bottleneck)",
-        2: "Try splitting flow equally between the two paths from source",
-        3: "Find the bottleneck edges that limit total flow",
-        4: "Look for edges that appear in multiple paths - they're critical",
-        5: "This is a true max flow problem - you need to find all augmenting paths"
+        1: "Rappelez-vous: le flux à travers un chemin est limité par l'arc de capacité minimale (goulet d'étranglement)",
+        2: "Essayez de répartir le flux équitablement entre les deux chemins de la source",
+        3: "Trouvez les arcs de goulet d'étranglement qui limitent le flux total",
+        4: "Recherchez les arcs qui apparaissent dans plusieurs chemins - ils sont critiques",
+        5: "C'est un vrai problème de flux maximum - vous devez trouver tous les chemins d'augmentation"
     }
-    return jsonify({"hint": hints.get(level_id, "No hint available")})
+    return jsonify({"hint": hints.get(level_id, "Aucun indice disponible")})
 
 if __name__ == '__main__':
     app.run(debug=True)

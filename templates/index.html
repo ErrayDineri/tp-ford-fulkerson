@@ -3,90 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ford-Fulkerson Maximum Flow Game</title>
+    <title>Défi de Flux Maximum Ford-Fulkerson</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🌊 Maximum Flow Challenge</h1>
-            <p>Master the Ford-Fulkerson algorithm by finding the maximum flow!</p>
+            <h1>🌊 Défi de Flux Maximum</h1>
+            <p>Maîtrisez l'algorithme de Ford-Fulkerson en trouvant le flux maximum!</p>
         </header>
 
         <div class="content">
-            <!-- Level Selection -->
+            <!-- Sélection de niveau -->
             <div id="level-select" class="level-select">
-                <h2>Select a Level</h2>
+                <h2>Sélectionnez un Niveau</h2>
                 <div class="levels-grid">
                     {% for level in levels %}
                     <button class="level-btn" data-level="{{ level.id }}">
-                        <span class="level-number">Level {{ level.id }}</span>
+                        <span class="level-number">Niveau {{ level.id }}</span>
                         <span class="level-name">{{ level.name }}</span>
                     </button>
                     {% endfor %}
                 </div>
                 
                 <div class="custom-graph-section">
-                    <h2>Or Create Your Own</h2>
+                    <h2>Ou Créez le Vôtre</h2>
                     <button id="create-custom-btn" class="btn btn-custom">
-                        <span>✏️ Custom Graph Builder</span>
+                        <span>✏️ Constructeur de Graphe Personnalisé</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Custom Graph Builder -->
+            <!-- Constructeur de Graphe Personnalisé -->
             <div id="graph-builder" class="graph-builder" style="display: none;">
                 <div class="builder-header">
-                    <h2>🔧 Custom Graph Builder</h2>
-                    <p>Create your own flow network and test your skills!</p>
+                    <h2>🔧 Constructeur de Graphe Personnalisé</h2>
+                    <p>Créez votre propre réseau de flux et testez vos compétences!</p>
                 </div>
                 
                 <div class="builder-content">
                     <div class="builder-controls">
-                        <!-- Node Controls -->
+                        <!-- Contrôles des Nœuds -->
                         <div class="builder-section">
-                            <h3>Nodes</h3>
+                            <h3>Nœuds</h3>
                             <div class="node-controls">
-                                <label>Number of nodes:</label>
+                                <label>Nombre de nœuds:</label>
                                 <input type="number" id="node-count" min="2" max="10" value="4">
-                                <button id="set-nodes-btn" class="btn btn-small">Set Nodes</button>
+                                <button id="set-nodes-btn" class="btn btn-small">Définir les Nœuds</button>
                             </div>
                             <div class="source-sink-controls">
                                 <div>
-                                    <label>Source node:</label>
+                                    <label>Nœud source:</label>
                                     <select id="source-select"></select>
                                 </div>
                                 <div>
-                                    <label>Sink node:</label>
+                                    <label>Nœud puits:</label>
                                     <select id="sink-select"></select>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Edge Controls -->
+                        <!-- Contrôles des Arcs -->
                         <div class="builder-section">
-                            <h3>Add Edge</h3>
+                            <h3>Ajouter un Arc</h3>
                             <div class="edge-controls">
                                 <div class="edge-inputs">
                                     <select id="edge-from"></select>
                                     <span>→</span>
                                     <select id="edge-to"></select>
-                                    <input type="number" id="edge-capacity" min="1" max="100" value="10" placeholder="Capacity">
+                                    <input type="number" id="edge-capacity" min="1" max="100" value="10" placeholder="Capacité">
                                 </div>
-                                <button id="add-edge-btn" class="btn btn-small btn-primary">Add Edge</button>
+                                <button id="add-edge-btn" class="btn btn-small btn-primary">Ajouter un Arc</button>
                             </div>
                         </div>
                         
-                        <!-- Edge List -->
+                        <!-- Liste des Arcs -->
                         <div class="builder-section">
-                            <h3>Edges <span id="edge-count">(0)</span></h3>
+                            <h3>Arcs <span id="edge-count">(0)</span></h3>
                             <div id="edge-list" class="edge-list"></div>
                         </div>
                     </div>
                     
-                    <!-- Preview Canvas -->
+                    <!-- Aperçu -->
                     <div class="builder-preview">
-                        <h3>Preview</h3>
+                        <h3>Aperçu</h3>
                         <div class="preview-container">
                             <canvas id="preview-canvas"></canvas>
                         </div>
@@ -94,44 +94,44 @@
                 </div>
                 
                 <div class="builder-actions">
-                    <button id="play-custom-btn" class="btn btn-primary" disabled>▶ Play This Graph</button>
-                    <button id="clear-graph-btn" class="btn btn-secondary">Clear All</button>
-                    <button id="back-from-builder-btn" class="btn btn-secondary">Back to Levels</button>
+                    <button id="play-custom-btn" class="btn btn-primary" disabled>▶ Jouer avec ce Graphe</button>
+                    <button id="clear-graph-btn" class="btn btn-secondary">Effacer Tout</button>
+                    <button id="back-from-builder-btn" class="btn btn-secondary">Retour aux Niveaux</button>
                 </div>
             </div>
 
-            <!-- Game Area -->
+            <!-- Zone de Jeu -->
             <div id="game-area" class="game-area" style="display: none;">
-                <!-- Level Info -->
+                <!-- Informations du Niveau -->
                 <div class="level-info">
                     <h2 id="level-title"></h2>
                     <p id="level-description"></p>
                 </div>
 
-                <!-- Graph Visualization -->
+                <!-- Visualisation du Graphe -->
                 <div class="graph-container">
                     <canvas id="graph-canvas"></canvas>
                 </div>
 
-                <!-- Flow Controls -->
+                <!-- Contrôles de Flux -->
                 <div class="controls">
                     <div id="flow-controls" class="flow-controls"></div>
                 </div>
 
-                <!-- Status and Feedback -->
+                <!-- Statut et Rétroaction -->
                 <div class="status">
                     <div id="status-message" class="status-message"></div>
                     <div id="flow-info" class="flow-info"></div>
                 </div>
 
-                <!-- Action Buttons -->
+                <!-- Boutons d'Action -->
                 <div class="actions">
-                    <button id="verify-btn" class="btn btn-primary">Verify Flow</button>
-                    <button id="hint-btn" class="btn btn-secondary">Get Hint</button>
-                    <button id="back-btn" class="btn btn-secondary">Back to Levels</button>
+                    <button id="verify-btn" class="btn btn-primary">Vérifier le Flux</button>
+                    <button id="hint-btn" class="btn btn-secondary">Obtenir un Indice</button>
+                    <button id="back-btn" class="btn btn-secondary">Retour aux Niveaux</button>
                 </div>
 
-                <!-- Progress Bar -->
+                <!-- Barre de Progression -->
                 <div id="progress-section" class="progress-section">
                     <div class="progress-bar">
                         <div id="level-progress" class="progress-fill"></div>

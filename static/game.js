@@ -155,7 +155,7 @@ function openFlowEditor(flowId, canvasX, canvasY) {
     editor.className = 'flow-editor';
     editor.innerHTML = `
         <div class="flow-editor-header">
-            <span>Edge ${edge.from} → ${edge.to}</span>
+            <span>Arc ${edge.from} → ${edge.to}</span>
             <button class="flow-editor-close" onclick="closeFlowEditor()">×</button>
         </div>
         <div class="flow-editor-content">
@@ -165,8 +165,8 @@ function openFlowEditor(flowId, canvasX, canvasY) {
         </div>
         <div class="flow-editor-capacity">Max: ${edge.capacity}</div>
         <div class="flow-editor-actions">
-            <button class="flow-set-btn" onclick="setFlowToZero('${flowId}')">Set 0</button>
-            <button class="flow-set-btn" onclick="setFlowToMax('${flowId}', ${edge.capacity})">Set Max</button>
+            <button class="flow-set-btn" onclick="setFlowToZero('${flowId}')">0</button>
+            <button class="flow-set-btn" onclick="setFlowToMax('${flowId}', ${edge.capacity})">Max</button>
         </div>
     `;
     
@@ -305,7 +305,7 @@ async function loadLevel(levelId) {
         // Update progress
         const progress = (levelId / 5) * 100;
         document.getElementById('level-progress').style.width = progress + '%';
-        document.getElementById('level-counter').textContent = `Level ${levelId} / 5`;
+        document.getElementById('level-counter').textContent = `Niveau ${levelId} / 5`;
 
         // Initialize flows
         flows = {};
@@ -659,7 +659,7 @@ function drawNode(nodeId) {
     if (nodeId === levelData.source || nodeId === levelData.sink) {
         ctx.fillStyle = '#666';
         ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.fillText(nodeId === levelData.source ? 'Source' : 'Sink', pos.x, pos.y + radius + 18);
+        ctx.fillText(nodeId === levelData.source ? 'Source' : 'Puits', pos.x, pos.y + radius + 18);
     }
 }
 
@@ -675,7 +675,7 @@ function createFlowControls() {
         
         const label = document.createElement('label');
         label.htmlFor = flowId;
-        label.textContent = `Edge ${edge.from} → ${edge.to}`;
+        label.textContent = `Arc ${edge.from} → ${edge.to}`;
         
         const input = document.createElement('input');
         input.type = 'number';
@@ -700,7 +700,7 @@ function createFlowControls() {
         
         const capacity = document.createElement('div');
         capacity.className = 'flow-capacity';
-        capacity.textContent = `Capacity: ${edge.capacity} units`;
+        capacity.textContent = `Capacité: ${edge.capacity} unités`;
         
         controlDiv.appendChild(label);
         controlDiv.appendChild(input);
@@ -761,7 +761,7 @@ function displayFlowWarnings(violations) {
         const totalFlow = Object.values(flows).reduce((a, b) => a + b, 0);
         if (totalFlow > 0) {
             const flowInfo = document.getElementById('flow-info');
-            flowInfo.innerHTML = `<span style="color: #28a745;">✓ Flow conservation satisfied</span>`;
+            flowInfo.innerHTML = `<span style="color: #28a745;">✓ Conservation du flux satisfaite</span>`;
         }
         return;
     }
@@ -770,15 +770,15 @@ function displayFlowWarnings(violations) {
     const warningDiv = document.createElement('div');
     warningDiv.className = 'flow-warning';
     
-    let warningHTML = '<strong>⚠️ Kirchhoff\'s Law Violations:</strong><ul>';
+    let warningHTML = '<strong>⚠️ Violations de la Loi de Kirchhoff:</strong><ul>';
     violations.forEach(v => {
         const nodeLabel = v.node === levelData.source ? 'Source' : 
-                         v.node === levelData.sink ? 'Sink' : `Node ${v.node}`;
-        warningHTML += `<li><strong>${nodeLabel}</strong>: In=${v.inFlow}, Out=${v.outFlow} `;
+                         v.node === levelData.sink ? 'Puits' : `Nœud ${v.node}`;
+        warningHTML += `<li><strong>${nodeLabel}</strong>: Entrant=${v.inFlow}, Sortant=${v.outFlow} `;
         if (v.difference > 0) {
-            warningHTML += `<span class="warning-excess">(${v.difference} units stuck)</span>`;
+            warningHTML += `<span class="warning-excess">(${v.difference} unités bloquées)</span>`;
         } else {
-            warningHTML += `<span class="warning-deficit">(${Math.abs(v.difference)} units missing)</span>`;
+            warningHTML += `<span class="warning-deficit">(${Math.abs(v.difference)} unités manquantes)</span>`;
         }
         warningHTML += '</li>';
     });
@@ -791,7 +791,7 @@ function displayFlowWarnings(violations) {
     flowInfo.parentNode.insertBefore(warningDiv, flowInfo);
     
     // Update flow info
-    flowInfo.innerHTML = `<span style="color: #dc3545;">✗ Fix flow conservation before verifying</span>`;
+    flowInfo.innerHTML = `<span style="color: #dc3545;">✗ Corrigez la conservation du flux avant de vérifier</span>`;
 }
 
 async function verifyFlow() {
@@ -800,7 +800,7 @@ async function verifyFlow() {
     // Check flow conservation first
     const violations = checkFlowConservation();
     if (violations.length > 0) {
-        showStatusMessage('Fix Kirchhoff\'s law violations first! Flow in must equal flow out at each intermediate node.', 'error');
+        showStatusMessage('Corrigez d\'abord les violations de la loi de Kirchhoff! Le flux entrant doit égaler le flux sortant à chaque nœud intermédiaire.', 'error');
         return;
     }
     
@@ -828,7 +828,7 @@ async function verifyFlow() {
         if (result.is_valid) {
             showStatusMessage(result.message, 'success');
             document.getElementById('flow-info').textContent = 
-                `Maximum Flow: ${result.max_flow} units ✓`;
+                `Flux Maximum: ${result.max_flow} unités ✓`;
             
             // Show next level button after success
             setTimeout(() => {
@@ -837,11 +837,11 @@ async function verifyFlow() {
         } else {
             showStatusMessage(result.message, 'error');
             document.getElementById('flow-info').textContent = 
-                `Current: ${result.user_flow} units | Max: ${result.max_flow} units`;
+                `Actuel: ${result.user_flow} unités | Max: ${result.max_flow} unités`;
         }
     } catch (error) {
         console.error('Error verifying flow:', error);
-        showStatusMessage('Error verifying flow. Try again.', 'error');
+        showStatusMessage('Erreur lors de la vérification du flux. Réessayez.', 'error');
     }
 }
 
@@ -849,14 +849,14 @@ function showNextLevelPrompt() {
     if (currentLevel < 5) {
         const nextBtn = document.createElement('button');
         nextBtn.className = 'btn btn-primary';
-        nextBtn.textContent = `→ Continue to Level ${currentLevel + 1}`;
+        nextBtn.textContent = `→ Continuez au Niveau ${currentLevel + 1}`;
         nextBtn.style.marginTop = '20px';
         nextBtn.addEventListener('click', () => {
             loadLevel(currentLevel + 1);
         });
         document.querySelector('.actions').appendChild(nextBtn);
     } else {
-        showStatusMessage('🎉 Congratulations! You completed all levels!', 'success');
+        showStatusMessage('🎉 Félicitations! Vous avez complété tous les niveaux!', 'success');
     }
 }
 
@@ -867,7 +867,7 @@ async function getHint() {
         
         const hintDiv = document.createElement('div');
         hintDiv.className = 'hint-message';
-        hintDiv.innerHTML = `<strong>Hint:</strong> ${result.hint}`;
+        hintDiv.innerHTML = `<strong>Indice:</strong> ${result.hint}`;
         
         const statusDiv = document.getElementById('status-message');
         statusDiv.parentNode.insertBefore(hintDiv, statusDiv);
@@ -1072,7 +1072,7 @@ function backFromBuilder() {
 function setNodeCount() {
     const count = parseInt(document.getElementById('node-count').value);
     if (count < 2 || count > 10) {
-        alert('Node count must be between 2 and 10');
+        alert('Le nombre de nœuds doit être entre 2 et 10');
         return;
     }
     
@@ -1118,19 +1118,19 @@ function addEdge() {
     const capacity = parseInt(document.getElementById('edge-capacity').value);
     
     if (from === to) {
-        alert('Cannot create self-loop edge');
+        alert('Impossible de créer une boucle sur elle-même');
         return;
     }
     
     if (capacity < 1 || capacity > 100) {
-        alert('Capacity must be between 1 and 100');
+        alert('La capacité doit être entre 1 et 100');
         return;
     }
     
     // Check if edge already exists
     const exists = customGraph.edges.some(e => e.from === from && e.to === to);
     if (exists) {
-        alert('This edge already exists');
+        alert('Cet arc existe déjà');
         return;
     }
     
@@ -1155,7 +1155,7 @@ function updateEdgeList() {
     edgeCount.textContent = `(${customGraph.edges.length})`;
     
     if (customGraph.edges.length === 0) {
-        edgeList.innerHTML = '<div style="color: #888; text-align: center; padding: 20px;">No edges yet. Add some edges above.</div>';
+        edgeList.innerHTML = '<div style="color: #888; text-align: center; padding: 20px;">Aucun arc pour le moment. Ajoutez des arcs ci-dessus.</div>';
         return;
     }
     
@@ -1165,7 +1165,7 @@ function updateEdgeList() {
                 <span class="from-node">${edge.from}</span>
                 <span>→</span>
                 <span class="to-node">${edge.to}</span>
-                <span class="capacity">(capacity: ${edge.capacity})</span>
+                <span class="capacity">(capacité: ${edge.capacity})</span>
             </div>
             <button onclick="removeEdge(${i})">✕</button>
         </div>
@@ -1404,15 +1404,15 @@ function drawPreviewNode(positions, nodeId) {
 
 function playCustomGraph() {
     if (customGraph.edges.length === 0) {
-        alert('Please add at least one edge');
+        alert('Veuillez ajouter au moins un arc');
         return;
     }
     
     // Create level data from custom graph
     levelData = {
         id: 'custom',
-        name: 'Custom Graph',
-        description: 'Your custom flow network',
+        name: 'Graphe Personnalisé',
+        description: 'Votre réseau de flux personnalisé',
         nodes: customGraph.nodes,
         edges: [...customGraph.edges],
         source: customGraph.source,
