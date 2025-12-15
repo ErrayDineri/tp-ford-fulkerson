@@ -5,6 +5,8 @@ let flows = {};
 let nodePositions = {};
 let animationFrame = null;
 let flowAnimations = {};
+let edgeLabelPositions = {}; // Store edge label positions for click detection
+let selectedEdge = null; // Currently selected edge for editing
 
 // Canvas setup
 const canvas = document.getElementById('graph-canvas');
@@ -76,6 +78,188 @@ window.addEventListener('resize', () => {
         drawGraph();
     }
 });
+
+// Canvas click handler for edge selection
+canvas.addEventListener('click', (e) => {
+    if (!levelData) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Check if clicked on any edge label
+    for (const flowId in edgeLabelPositions) {
+        const pos = edgeLabelPositions[flowId];
+        const labelWidth = 58;
+        const labelHeight = 26;
+        
+        if (x >= pos.x - labelWidth/2 && x <= pos.x + labelWidth/2 &&
+            y >= pos.y - labelHeight/2 && y <= pos.y + labelHeight/2) {
+            openFlowEditor(flowId, pos.x, pos.y);
+            return;
+        }
+    }
+    
+    // Close editor if clicking elsewhere
+    closeFlowEditor();
+});
+
+// Close flow editor when clicking outside
+document.addEventListener('click', (e) => {
+    const editor = document.getElementById('flow-editor');
+    if (editor && !editor.contains(e.target) && e.target !== canvas) {
+        closeFlowEditor();
+    }
+});
+
+// Show pointer cursor when hovering over edge labels
+canvas.addEventListener('mousemove', (e) => {
+    if (!levelData) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    let hovering = false;
+    for (const flowId in edgeLabelPositions) {
+        const pos = edgeLabelPositions[flowId];
+        const labelWidth = 58;
+        const labelHeight = 26;
+        
+        if (x >= pos.x - labelWidth/2 && x <= pos.x + labelWidth/2 &&
+            y >= pos.y - labelHeight/2 && y <= pos.y + labelHeight/2) {
+            hovering = true;
+            break;
+        }
+    }
+    
+    canvas.style.cursor = hovering ? 'pointer' : 'default';
+});
+
+function openFlowEditor(flowId, canvasX, canvasY) {
+    closeFlowEditor();
+    
+    const edge = levelData.edges.find(e => `${e.from}-${e.to}` === flowId);
+    if (!edge) return;
+    
+    selectedEdge = flowId;
+    
+    // Get canvas position on page
+    const rect = canvas.getBoundingClientRect();
+    const pageX = rect.left + canvasX + window.scrollX;
+    const pageY = rect.top + canvasY + window.scrollY;
+    
+    // Create editor popup
+    const editor = document.createElement('div');
+    editor.id = 'flow-editor';
+    editor.className = 'flow-editor';
+    editor.innerHTML = `
+        <div class="flow-editor-header">
+            <span>Edge ${edge.from} → ${edge.to}</span>
+            <button class="flow-editor-close" onclick="closeFlowEditor()">×</button>
+        </div>
+        <div class="flow-editor-content">
+            <button class="flow-btn flow-btn-minus" onclick="adjustFlow('${flowId}', -1)">−</button>
+            <input type="number" id="flow-editor-input" value="${flows[flowId] || 0}" min="0" max="${edge.capacity}">
+            <button class="flow-btn flow-btn-plus" onclick="adjustFlow('${flowId}', 1)">+</button>
+        </div>
+        <div class="flow-editor-capacity">Max: ${edge.capacity}</div>
+        <div class="flow-editor-actions">
+            <button class="flow-set-btn" onclick="setFlowToZero('${flowId}')">Set 0</button>
+            <button class="flow-set-btn" onclick="setFlowToMax('${flowId}', ${edge.capacity})">Set Max</button>
+        </div>
+    `;
+    
+    document.body.appendChild(editor);
+    
+    // Position editor near the label (but not overlapping)
+    const editorRect = editor.getBoundingClientRect();
+    let left = pageX - editorRect.width / 2;
+    let top = pageY + 20;
+    
+    // Keep within viewport
+    left = Math.max(10, Math.min(left, window.innerWidth - editorRect.width - 10));
+    top = Math.max(10, Math.min(top, window.innerHeight - editorRect.height - 10));
+    
+    editor.style.left = left + 'px';
+    editor.style.top = top + 'px';
+    
+    // Focus input and select text
+    const input = document.getElementById('flow-editor-input');
+    input.focus();
+    input.select();
+    
+    // Handle input changes
+    input.addEventListener('change', (e) => {
+        updateFlowFromEditor(flowId, parseInt(e.target.value) || 0, edge.capacity);
+    });
+    
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            updateFlowFromEditor(flowId, parseInt(input.value) || 0, edge.capacity);
+            closeFlowEditor();
+        } else if (e.key === 'Escape') {
+            closeFlowEditor();
+        }
+    });
+    
+    drawGraph(); // Redraw to show selection
+}
+
+function closeFlowEditor() {
+    const editor = document.getElementById('flow-editor');
+    if (editor) {
+        editor.remove();
+    }
+    selectedEdge = null;
+    if (levelData) drawGraph();
+}
+
+function adjustFlow(flowId, delta) {
+    const edge = levelData.edges.find(e => `${e.from}-${e.to}` === flowId);
+    if (!edge) return;
+    
+    let newValue = (flows[flowId] || 0) + delta;
+    newValue = Math.max(0, Math.min(newValue, edge.capacity));
+    
+    updateFlowFromEditor(flowId, newValue, edge.capacity);
+    
+    // Update input display
+    const input = document.getElementById('flow-editor-input');
+    if (input) input.value = newValue;
+}
+
+function setFlowToZero(flowId) {
+    const edge = levelData.edges.find(e => `${e.from}-${e.to}` === flowId);
+    if (!edge) return;
+    updateFlowFromEditor(flowId, 0, edge.capacity);
+    const input = document.getElementById('flow-editor-input');
+    if (input) input.value = 0;
+}
+
+function setFlowToMax(flowId, max) {
+    updateFlowFromEditor(flowId, max, max);
+    const input = document.getElementById('flow-editor-input');
+    if (input) input.value = max;
+}
+
+function updateFlowFromEditor(flowId, value, capacity) {
+    value = Math.max(0, Math.min(value, capacity));
+    flows[flowId] = value;
+    
+    // Update flow particles
+    const parts = flowId.split('-');
+    updateFlowParticles(parseInt(parts[0]), parseInt(parts[1]), value);
+    
+    // Check flow conservation
+    checkFlowConservation();
+    
+    // Update the flow controls panel if visible
+    const controlInput = document.getElementById(flowId);
+    if (controlInput) controlInput.value = value;
+    
+    drawGraph();
+}
 
 // Animation loop
 function animate() {
@@ -257,6 +441,11 @@ function assignLayers() {
 }
 
 function drawGraph() {
+    if (!levelData) return;
+    
+    // Clear edge label positions
+    edgeLabelPositions = {};
+    
     // Clear canvas with gradient background
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradient.addColorStop(0, '#f8f9fa');
@@ -368,23 +557,34 @@ function drawEdge(edge) {
     const labelX = (1-labelT)*(1-labelT)*startX + 2*(1-labelT)*labelT*controlX + labelT*labelT*endX;
     const labelY = (1-labelT)*(1-labelT)*startY + 2*(1-labelT)*labelT*controlY + labelT*labelT*endY;
     const label = `${flowValue}/${edge.capacity}`;
-
-    // Background for label with shadow
-    ctx.save();
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
-    ctx.fillStyle = 'white';
+    const flowId = `${edge.from}-${edge.to}`;
+    
+    // Store label position for click detection
+    edgeLabelPositions[flowId] = { x: labelX, y: labelY };
+    
+    const isSelected = selectedEdge === flowId;
     const labelWidth = 58;
     const labelHeight = 26;
     const labelBorderRadius = 13;
+
+    // Background for label with shadow
+    ctx.save();
+    ctx.shadowBlur = isSelected ? 15 : 8;
+    ctx.shadowColor = isSelected ? 'rgba(102, 126, 234, 0.5)' : 'rgba(0, 0, 0, 0.15)';
+    ctx.fillStyle = isSelected ? '#f0f4ff' : 'white';
     ctx.beginPath();
     ctx.roundRect(labelX - labelWidth/2, labelY - labelHeight/2, labelWidth, labelHeight, labelBorderRadius);
     ctx.fill();
     ctx.restore();
     
-    // Border for label
-    ctx.strokeStyle = flowValue > 0 ? (flowPercent >= 0.9 ? '#dc3545' : '#667eea') : '#ddd';
-    ctx.lineWidth = 2;
+    // Border for label (highlight if selected)
+    if (isSelected) {
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 3;
+    } else {
+        ctx.strokeStyle = flowValue > 0 ? (flowPercent >= 0.9 ? '#dc3545' : '#667eea') : '#ddd';
+        ctx.lineWidth = 2;
+    }
     ctx.beginPath();
     ctx.roundRect(labelX - labelWidth/2, labelY - labelHeight/2, labelWidth, labelHeight, labelBorderRadius);
     ctx.stroke();
@@ -395,6 +595,11 @@ function drawEdge(edge) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, labelX, labelY);
+    
+    // Draw click hint cursor indicator
+    if (!isSelected) {
+        canvas.style.cursor = 'default';
+    }
 }
 
 function drawNode(nodeId) {
