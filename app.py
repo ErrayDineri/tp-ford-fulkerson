@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from collections import defaultdict, deque
+from waitress import serve
 import json
 
 app = Flask(__name__)
@@ -278,4 +279,5 @@ def get_hint(level_id):
     return jsonify({"hint": hints.get(level_id, "Aucun indice disponible")})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    print("🚀 Serveur démarré sur http://localhost:8080")
+    serve(app, host='0.0.0.0', port=8080)
