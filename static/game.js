@@ -487,6 +487,9 @@ function createFlowControls() {
             // Create flow particles for animation
             updateFlowParticles(edge.from, edge.to, value);
             
+            // Check flow conservation (Kirchhoff's law)
+            checkFlowConservation();
+            
             drawGraph();
         });
         
@@ -502,8 +505,99 @@ function createFlowControls() {
     });
 }
 
+// Check Kirchhoff's law: flow in = flow out for all intermediate nodes
+function checkFlowConservation() {
+    const violations = [];
+    
+    for (let node = 0; node < levelData.nodes; node++) {
+        // Skip source and sink
+        if (node === levelData.source || node === levelData.sink) continue;
+        
+        // Calculate incoming flow
+        let inFlow = 0;
+        for (const edge of levelData.edges) {
+            if (edge.to === node) {
+                inFlow += flows[`${edge.from}-${edge.to}`] || 0;
+            }
+        }
+        
+        // Calculate outgoing flow
+        let outFlow = 0;
+        for (const edge of levelData.edges) {
+            if (edge.from === node) {
+                outFlow += flows[`${edge.from}-${edge.to}`] || 0;
+            }
+        }
+        
+        // Check if there's a violation (only if there's some flow through the node)
+        if (inFlow !== outFlow && (inFlow > 0 || outFlow > 0)) {
+            violations.push({
+                node: node,
+                inFlow: inFlow,
+                outFlow: outFlow,
+                difference: inFlow - outFlow
+            });
+        }
+    }
+    
+    // Display warnings
+    displayFlowWarnings(violations);
+    
+    return violations;
+}
+
+function displayFlowWarnings(violations) {
+    // Remove existing warnings
+    const existingWarnings = document.querySelectorAll('.flow-warning');
+    existingWarnings.forEach(w => w.remove());
+    
+    if (violations.length === 0) {
+        // Show success indicator if there's any flow
+        const totalFlow = Object.values(flows).reduce((a, b) => a + b, 0);
+        if (totalFlow > 0) {
+            const flowInfo = document.getElementById('flow-info');
+            flowInfo.innerHTML = `<span style="color: #28a745;">✓ Flow conservation satisfied</span>`;
+        }
+        return;
+    }
+    
+    // Create warning container
+    const warningDiv = document.createElement('div');
+    warningDiv.className = 'flow-warning';
+    
+    let warningHTML = '<strong>⚠️ Kirchhoff\'s Law Violations:</strong><ul>';
+    violations.forEach(v => {
+        const nodeLabel = v.node === levelData.source ? 'Source' : 
+                         v.node === levelData.sink ? 'Sink' : `Node ${v.node}`;
+        warningHTML += `<li><strong>${nodeLabel}</strong>: In=${v.inFlow}, Out=${v.outFlow} `;
+        if (v.difference > 0) {
+            warningHTML += `<span class="warning-excess">(${v.difference} units stuck)</span>`;
+        } else {
+            warningHTML += `<span class="warning-deficit">(${Math.abs(v.difference)} units missing)</span>`;
+        }
+        warningHTML += '</li>';
+    });
+    warningHTML += '</ul>';
+    
+    warningDiv.innerHTML = warningHTML;
+    
+    // Insert before flow-info
+    const flowInfo = document.getElementById('flow-info');
+    flowInfo.parentNode.insertBefore(warningDiv, flowInfo);
+    
+    // Update flow info
+    flowInfo.innerHTML = `<span style="color: #dc3545;">✗ Fix flow conservation before verifying</span>`;
+}
+
 async function verifyFlow() {
     clearStatusMessage();
+    
+    // Check flow conservation first
+    const violations = checkFlowConservation();
+    if (violations.length > 0) {
+        showStatusMessage('Fix Kirchhoff\'s law violations first! Flow in must equal flow out at each intermediate node.', 'error');
+        return;
+    }
     
     try {
         const response = await fetch('/api/verify', {
@@ -583,6 +677,14 @@ function clearStatusMessage() {
     
     const hints = document.querySelectorAll('.hint-message');
     hints.forEach(hint => hint.remove());
+    
+    // Also clear flow warnings
+    const warnings = document.querySelectorAll('.flow-warning');
+    warnings.forEach(w => w.remove());
+    
+    // Reset flow info
+    const flowInfo = document.getElementById('flow-info');
+    if (flowInfo) flowInfo.textContent = '';
 }
 
 function updateFlowParticles(from, to, flowValue) {
