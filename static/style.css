@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #0891b2 50%, #06b6d4 100%);
     background-attachment: fixed;
     min-height: 100vh;
     padding: 20px;
@@ -53,7 +53,7 @@ body::before {
 }
 
 header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #0891b2 50%, #06b6d4 100%);
     color: white;
     padding: 40px 20px;
     text-align: center;
@@ -129,7 +129,7 @@ header p {
 }
 
 .level-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
     color: white;
     border: none;
     padding: 30px 20px;
@@ -203,7 +203,7 @@ header p {
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 30px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #2563eb;
 }
 
 .level-info h2 {
@@ -235,7 +235,7 @@ header p {
     left: -2px;
     right: -2px;
     bottom: -2px;
-    background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #667eea);
+    background: linear-gradient(45deg, #2563eb, #0891b2, #06b6d4, #2563eb);
     border-radius: 16px;
     opacity: 0;
     transition: opacity 0.3s;
@@ -289,7 +289,7 @@ header p {
 }
 
 .flow-control:focus-within {
-    border-color: #667eea;
+    border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 12px rgba(102, 126, 234, 0.2);
     transform: translateY(-2px);
 }
@@ -319,7 +319,7 @@ header p {
 
 .flow-control input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     transform: scale(1.02);
 }
@@ -393,7 +393,7 @@ header p {
     background: linear-gradient(135deg, #e7f3ff 0%, #d6e9ff 100%);
     padding: 18px;
     border-radius: 12px;
-    border-left: 5px solid #667eea;
+    border-left: 5px solid #2563eb;
     color: #333;
     min-height: 20px;
     font-weight: 600;
@@ -437,7 +437,7 @@ header p {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
     color: white;
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     position: relative;
@@ -501,7 +501,7 @@ header p {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: linear-gradient(90deg, #2563eb 0%, #0891b2 50%, #06b6d4 100%);
     background-size: 200% 100%;
     width: 0%;
     transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -571,12 +571,12 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
 }
 
 /* Responsive */
@@ -818,7 +818,7 @@ html {
     color: #333;
     margin-bottom: 15px;
     font-size: 1em;
-    border-bottom: 2px solid #667eea;
+    border-bottom: 2px solid #2563eb;
     padding-bottom: 8px;
 }
 
@@ -895,7 +895,7 @@ html {
 }
 
 .edge-inputs span {
-    color: #667eea;
+    color: #2563eb;
     font-weight: bold;
     font-size: 1.2em;
 }
@@ -941,7 +941,7 @@ html {
 
 .edge-item-info .from-node,
 .edge-item-info .to-node {
-    background: #667eea;
+    background: #2563eb;
     color: white;
     padding: 2px 8px;
     border-radius: 4px;
@@ -1054,7 +1054,7 @@ html {
     justify-content: space-between;
     align-items: center;
     padding: 10px 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
     color: white;
     font-weight: 600;
     font-size: 13px;
@@ -1090,9 +1090,9 @@ html {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 2px solid #667eea;
+    border: 2px solid #2563eb;
     background: white;
-    color: #667eea;
+    color: #2563eb;
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
@@ -1103,7 +1103,7 @@ html {
 }
 
 .flow-btn:hover {
-    background: #667eea;
+    background: #2563eb;
     color: white;
     transform: scale(1.1);
 }
@@ -1126,7 +1126,7 @@ html {
 
 .flow-editor-content input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #2563eb;
 }
 
 .flow-editor-capacity {
@@ -1158,8 +1158,8 @@ html {
 }
 
 .flow-set-btn:hover {
-    background: #667eea;
-    border-color: #667eea;
+    background: #2563eb;
+    border-color: #2563eb;
     color: white;
 }
 

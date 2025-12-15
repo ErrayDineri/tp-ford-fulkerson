@@ -14,7 +14,7 @@ const ctx = canvas.getContext('2d');
 
 // Animation particles for flow visualization
 class FlowParticle {
-    constructor(startX, startY, endX, endY, color = '#667eea') {
+    constructor(startX, startY, endX, endY, color = '#2563eb') {
         this.startX = startX;
         this.startY = startY;
         this.endX = endX;
@@ -517,8 +517,8 @@ function drawEdge(edge) {
     // Draw curved line with gradient based on flow
     const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
     if (flowValue > 0) {
-        gradient.addColorStop(0, flowPercent >= 0.9 ? '#dc3545' : '#667eea');
-        gradient.addColorStop(1, flowPercent >= 0.9 ? '#ff6b7a' : '#8b9cff');
+        gradient.addColorStop(0, flowPercent >= 0.9 ? '#dc3545' : '#2563eb');
+        gradient.addColorStop(1, flowPercent >= 0.9 ? '#ff6b7a' : '#60a5fa');
     } else {
         gradient.addColorStop(0, '#aaa');
         gradient.addColorStop(1, '#ccc');
@@ -542,7 +542,7 @@ function drawEdge(edge) {
     const angle = Math.atan2(arrowY - arrowPrevY, arrowX - arrowPrevX);
     const arrowSize = 10;
 
-    ctx.fillStyle = flowValue > 0 ? (flowPercent >= 0.9 ? '#dc3545' : '#667eea') : '#aaa';
+    ctx.fillStyle = flowValue > 0 ? (flowPercent >= 0.9 ? '#dc3545' : '#2563eb') : '#aaa';
     ctx.beginPath();
     ctx.moveTo(arrowX + arrowSize * Math.cos(angle), arrowY + arrowSize * Math.sin(angle));
     ctx.lineTo(arrowX - arrowSize * Math.cos(angle - Math.PI / 6), 
@@ -579,10 +579,10 @@ function drawEdge(edge) {
     
     // Border for label (highlight if selected)
     if (isSelected) {
-        ctx.strokeStyle = '#667eea';
+        ctx.strokeStyle = '#2563eb';
         ctx.lineWidth = 3;
     } else {
-        ctx.strokeStyle = flowValue > 0 ? (flowPercent >= 0.9 ? '#dc3545' : '#667eea') : '#ddd';
+        ctx.strokeStyle = flowValue > 0 ? (flowPercent >= 0.9 ? '#dc3545' : '#2563eb') : '#ddd';
         ctx.lineWidth = 2;
     }
     ctx.beginPath();
@@ -590,7 +590,7 @@ function drawEdge(edge) {
     ctx.stroke();
 
     // Text
-    ctx.fillStyle = flowValue > 0 ? (flowPercent >= 0.9 ? '#dc3545' : '#667eea') : '#666';
+    ctx.fillStyle = flowValue > 0 ? (flowPercent >= 0.9 ? '#dc3545' : '#2563eb') : '#666';
     ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -617,8 +617,8 @@ function drawNode(nodeId) {
         color2 = '#ff6b7a';
         label = 'T';
     } else {
-        color1 = '#667eea';
-        color2 = '#764ba2';
+        color1 = '#2563eb';
+        color2 = '#0891b2';
         label = nodeId.toString();
     }
     
@@ -930,7 +930,7 @@ function updateFlowParticles(from, to, flowValue) {
         const numParticles = Math.min(5, Math.ceil(flowValue / 2));
         flowAnimations[flowId] = [];
         for (let i = 0; i < numParticles; i++) {
-            const particle = new FlowParticle(startX, startY, endX, endY, '#667eea');
+            const particle = new FlowParticle(startX, startY, endX, endY, '#2563eb');
             particle.controlX = controlX;
             particle.controlY = controlY;
             particle.progress = i / numParticles; // Stagger particles
@@ -1305,7 +1305,7 @@ function drawPreviewEdge(positions, edge) {
     const midY = (startY + endY) / 2 + nx * curveOffset;
     
     // Draw line
-    previewCtx.strokeStyle = '#667eea';
+    previewCtx.strokeStyle = '#2563eb';
     previewCtx.lineWidth = 2;
     previewCtx.beginPath();
     previewCtx.moveTo(startX, startY);
@@ -1321,7 +1321,7 @@ function drawPreviewEdge(positions, edge) {
     const arrowPrevY = (1-t2)*(1-t2)*startY + 2*(1-t2)*t2*midY + t2*t2*endY;
     const angle = Math.atan2(arrowY - arrowPrevY, arrowX - arrowPrevX);
     
-    previewCtx.fillStyle = '#667eea';
+    previewCtx.fillStyle = '#2563eb';
     previewCtx.beginPath();
     previewCtx.moveTo(arrowX + 6 * Math.cos(angle), arrowY + 6 * Math.sin(angle));
     previewCtx.lineTo(arrowX - 6 * Math.cos(angle - Math.PI / 6), arrowY - 6 * Math.sin(angle - Math.PI / 6));
@@ -1338,11 +1338,11 @@ function drawPreviewEdge(positions, edge) {
     previewCtx.beginPath();
     previewCtx.arc(labelX, labelY, 14, 0, 2 * Math.PI);
     previewCtx.fill();
-    previewCtx.strokeStyle = '#667eea';
+    previewCtx.strokeStyle = '#2563eb';
     previewCtx.lineWidth = 1.5;
     previewCtx.stroke();
     
-    previewCtx.fillStyle = '#667eea';
+    previewCtx.fillStyle = '#2563eb';
     previewCtx.font = 'bold 11px Arial';
     previewCtx.textAlign = 'center';
     previewCtx.textBaseline = 'middle';
@@ -1365,8 +1365,8 @@ function drawPreviewNode(positions, nodeId) {
         color2 = '#ff6b7a';
         label = 'T';
     } else {
-        color1 = '#667eea';
-        color2 = '#764ba2';
+        color1 = '#2563eb';
+        color2 = '#0891b2';
         label = nodeId.toString();
     }
     
