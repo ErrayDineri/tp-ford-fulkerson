@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ford-Fulkerson Maximum Flow Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌊 Maximum Flow Challenge</h1>
+            <p>Master the Ford-Fulkerson algorithm by finding the maximum flow!</p>
+        </header>
+
+        <div class="content">
+            <!-- Level Selection -->
+            <div id="level-select" class="level-select">
+                <h2>Select a Level</h2>
+                <div class="levels-grid">
+                    {% for level in levels %}
+                    <button class="level-btn" data-level="{{ level.id }}">
+                        <span class="level-number">Level {{ level.id }}</span>
+                        <span class="level-name">{{ level.name }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Game Area -->
+            <div id="game-area" class="game-area" style="display: none;">
+                <!-- Level Info -->
+                <div class="level-info">
+                    <h2 id="level-title"></h2>
+                    <p id="level-description"></p>
+                </div>
+
+                <!-- Graph Visualization -->
+                <div class="graph-container">
+                    <canvas id="graph-canvas"></canvas>
+                </div>
+
+                <!-- Flow Controls -->
+                <div class="controls">
+                    <div id="flow-controls" class="flow-controls"></div>
+                </div>
+
+                <!-- Status and Feedback -->
+                <div class="status">
+                    <div id="status-message" class="status-message"></div>
+                    <div id="flow-info" class="flow-info"></div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="actions">
+                    <button id="verify-btn" class="btn btn-primary">Verify Flow</button>
+                    <button id="hint-btn" class="btn btn-secondary">Get Hint</button>
+                    <button id="back-btn" class="btn btn-secondary">Back to Levels</button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-bar">
+                    <div id="level-progress" class="progress-fill"></div>
+                </div>
+                <span id="level-counter"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='game.js') }}"></script>
+</body>
+</html>
