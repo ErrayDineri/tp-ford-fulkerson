@@ -228,9 +228,16 @@ def verify_flow():
     level_id = data.get('level_id')
     user_flows = data.get('flows', {})
     
-    level = next((l for l in LEVELS if l['id'] == level_id), None)
-    if not level:
-        return jsonify({"error": "Level not found"}), 404
+    # Handle custom graphs
+    if level_id == 'custom':
+        custom_level = data.get('level_data')
+        if not custom_level:
+            return jsonify({"error": "Custom level data required"}), 400
+        level = custom_level
+    else:
+        level = next((l for l in LEVELS if l['id'] == level_id), None)
+        if not level:
+            return jsonify({"error": "Level not found"}), 404
     
     # Build the graph
     graph = Graph(level['nodes'])

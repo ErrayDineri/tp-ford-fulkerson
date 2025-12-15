@@ -600,15 +600,22 @@ async function verifyFlow() {
     }
     
     try {
+        const requestBody = {
+            level_id: currentLevel,
+            flows: flows
+        };
+        
+        // Include level data for custom graphs
+        if (currentLevel === 'custom') {
+            requestBody.level_data = levelData;
+        }
+        
         const response = await fetch('/api/verify', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                level_id: currentLevel,
-                flows: flows
-            })
+            body: JSON.stringify(requestBody)
         });
 
         const result = await response.json();
@@ -765,4 +772,478 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
         this.closePath();
         return this;
     };
+}
+
+// ==========================================
+// CUSTOM GRAPH BUILDER
+// ==========================================
+
+let customGraph = {
+    nodes: 4,
+    edges: [],
+    source: 0,
+    sink: 3
+};
+
+let previewCanvas, previewCtx;
+
+// Initialize builder when DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+    previewCanvas = document.getElementById('preview-canvas');
+    if (previewCanvas) {
+        previewCtx = previewCanvas.getContext('2d');
+    }
+    
+    // Builder button events
+    const createCustomBtn = document.getElementById('create-custom-btn');
+    if (createCustomBtn) {
+        createCustomBtn.addEventListener('click', openGraphBuilder);
+    }
+    
+    const setNodesBtn = document.getElementById('set-nodes-btn');
+    if (setNodesBtn) {
+        setNodesBtn.addEventListener('click', setNodeCount);
+    }
+    
+    const addEdgeBtn = document.getElementById('add-edge-btn');
+    if (addEdgeBtn) {
+        addEdgeBtn.addEventListener('click', addEdge);
+    }
+    
+    const playCustomBtn = document.getElementById('play-custom-btn');
+    if (playCustomBtn) {
+        playCustomBtn.addEventListener('click', playCustomGraph);
+    }
+    
+    const clearGraphBtn = document.getElementById('clear-graph-btn');
+    if (clearGraphBtn) {
+        clearGraphBtn.addEventListener('click', clearCustomGraph);
+    }
+    
+    const backFromBuilderBtn = document.getElementById('back-from-builder-btn');
+    if (backFromBuilderBtn) {
+        backFromBuilderBtn.addEventListener('click', backFromBuilder);
+    }
+    
+    // Source/Sink select change events
+    const sourceSelect = document.getElementById('source-select');
+    const sinkSelect = document.getElementById('sink-select');
+    if (sourceSelect) {
+        sourceSelect.addEventListener('change', (e) => {
+            customGraph.source = parseInt(e.target.value);
+            updatePreview();
+        });
+    }
+    if (sinkSelect) {
+        sinkSelect.addEventListener('change', (e) => {
+            customGraph.sink = parseInt(e.target.value);
+            updatePreview();
+        });
+    }
+});
+
+function openGraphBuilder() {
+    document.getElementById('level-select').style.display = 'none';
+    document.getElementById('graph-builder').style.display = 'block';
+    
+    // Initialize with default 4 nodes
+    customGraph = {
+        nodes: 4,
+        edges: [],
+        source: 0,
+        sink: 3
+    };
+    
+    updateNodeSelects();
+    updateEdgeList();
+    updatePreview();
+}
+
+function backFromBuilder() {
+    document.getElementById('graph-builder').style.display = 'none';
+    document.getElementById('level-select').style.display = 'block';
+}
+
+function setNodeCount() {
+    const count = parseInt(document.getElementById('node-count').value);
+    if (count < 2 || count > 10) {
+        alert('Node count must be between 2 and 10');
+        return;
+    }
+    
+    customGraph.nodes = count;
+    customGraph.source = 0;
+    customGraph.sink = count - 1;
+    
+    // Remove edges that reference removed nodes
+    customGraph.edges = customGraph.edges.filter(e => 
+        e.from < count && e.to < count
+    );
+    
+    updateNodeSelects();
+    updateEdgeList();
+    updatePreview();
+}
+
+function updateNodeSelects() {
+    const sourceSelect = document.getElementById('source-select');
+    const sinkSelect = document.getElementById('sink-select');
+    const edgeFrom = document.getElementById('edge-from');
+    const edgeTo = document.getElementById('edge-to');
+    
+    const options = [];
+    for (let i = 0; i < customGraph.nodes; i++) {
+        options.push(`<option value="${i}">Node ${i}</option>`);
+    }
+    const optionsHTML = options.join('');
+    
+    sourceSelect.innerHTML = optionsHTML;
+    sinkSelect.innerHTML = optionsHTML;
+    edgeFrom.innerHTML = optionsHTML;
+    edgeTo.innerHTML = optionsHTML;
+    
+    sourceSelect.value = customGraph.source;
+    sinkSelect.value = customGraph.sink;
+    edgeTo.value = Math.min(1, customGraph.nodes - 1);
+}
+
+function addEdge() {
+    const from = parseInt(document.getElementById('edge-from').value);
+    const to = parseInt(document.getElementById('edge-to').value);
+    const capacity = parseInt(document.getElementById('edge-capacity').value);
+    
+    if (from === to) {
+        alert('Cannot create self-loop edge');
+        return;
+    }
+    
+    if (capacity < 1 || capacity > 100) {
+        alert('Capacity must be between 1 and 100');
+        return;
+    }
+    
+    // Check if edge already exists
+    const exists = customGraph.edges.some(e => e.from === from && e.to === to);
+    if (exists) {
+        alert('This edge already exists');
+        return;
+    }
+    
+    customGraph.edges.push({ from, to, capacity });
+    
+    updateEdgeList();
+    updatePreview();
+    updatePlayButton();
+}
+
+function removeEdge(index) {
+    customGraph.edges.splice(index, 1);
+    updateEdgeList();
+    updatePreview();
+    updatePlayButton();
+}
+
+function updateEdgeList() {
+    const edgeList = document.getElementById('edge-list');
+    const edgeCount = document.getElementById('edge-count');
+    
+    edgeCount.textContent = `(${customGraph.edges.length})`;
+    
+    if (customGraph.edges.length === 0) {
+        edgeList.innerHTML = '<div style="color: #888; text-align: center; padding: 20px;">No edges yet. Add some edges above.</div>';
+        return;
+    }
+    
+    edgeList.innerHTML = customGraph.edges.map((edge, i) => `
+        <div class="edge-item">
+            <div class="edge-item-info">
+                <span class="from-node">${edge.from}</span>
+                <span>→</span>
+                <span class="to-node">${edge.to}</span>
+                <span class="capacity">(capacity: ${edge.capacity})</span>
+            </div>
+            <button onclick="removeEdge(${i})">✕</button>
+        </div>
+    `).join('');
+}
+
+function updatePlayButton() {
+    const playBtn = document.getElementById('play-custom-btn');
+    // Need at least one edge to play
+    playBtn.disabled = customGraph.edges.length === 0;
+}
+
+function clearCustomGraph() {
+    customGraph.edges = [];
+    updateEdgeList();
+    updatePreview();
+    updatePlayButton();
+}
+
+function updatePreview() {
+    if (!previewCanvas || !previewCtx) return;
+    
+    const container = document.querySelector('.preview-container');
+    const width = container.clientWidth - 20;
+    const height = Math.max(300, container.clientHeight - 20);
+    
+    previewCanvas.width = width;
+    previewCanvas.height = height;
+    
+    // Draw background
+    const gradient = previewCtx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#f8f9fa');
+    gradient.addColorStop(1, '#e9ecef');
+    previewCtx.fillStyle = gradient;
+    previewCtx.fillRect(0, 0, width, height);
+    
+    // Calculate node positions for preview
+    const previewPositions = calculatePreviewPositions(width, height);
+    
+    // Draw edges
+    customGraph.edges.forEach(edge => {
+        drawPreviewEdge(previewPositions, edge);
+    });
+    
+    // Draw nodes
+    for (let i = 0; i < customGraph.nodes; i++) {
+        drawPreviewNode(previewPositions, i);
+    }
+}
+
+function calculatePreviewPositions(width, height) {
+    const positions = {};
+    const padding = 60;
+    const availableWidth = width - 2 * padding;
+    const availableHeight = height - 2 * padding;
+    
+    // Simple BFS-like layer assignment
+    const layers = {};
+    const visited = new Set();
+    const queue = [customGraph.source];
+    layers[customGraph.source] = 0;
+    visited.add(customGraph.source);
+    
+    while (queue.length > 0) {
+        const u = queue.shift();
+        for (const edge of customGraph.edges) {
+            if (edge.from === u && !visited.has(edge.to)) {
+                visited.add(edge.to);
+                layers[edge.to] = (layers[u] || 0) + 1;
+                queue.push(edge.to);
+            }
+        }
+    }
+    
+    // Assign remaining nodes
+    let maxLayer = Math.max(0, ...Object.values(layers));
+    for (let i = 0; i < customGraph.nodes; i++) {
+        if (layers[i] === undefined) {
+            layers[i] = maxLayer + 1;
+            maxLayer++;
+        }
+    }
+    
+    // Ensure sink is at the end
+    layers[customGraph.sink] = Math.max(...Object.values(layers));
+    
+    // Group by layer
+    const nodesByLayer = {};
+    for (let i = 0; i < customGraph.nodes; i++) {
+        const layer = layers[i];
+        if (!nodesByLayer[layer]) nodesByLayer[layer] = [];
+        nodesByLayer[layer].push(i);
+    }
+    
+    const layerNumbers = Object.keys(nodesByLayer).map(Number).sort((a, b) => a - b);
+    const numLayers = layerNumbers.length;
+    
+    layerNumbers.forEach((layer, layerIndex) => {
+        const nodesInLayer = nodesByLayer[layer];
+        const layerCount = nodesInLayer.length;
+        
+        const xPos = numLayers === 1 ? width / 2 : padding + (layerIndex / (numLayers - 1)) * availableWidth;
+        
+        nodesInLayer.forEach((nodeId, idx) => {
+            const yPos = layerCount === 1 ? height / 2 : padding + (idx / (layerCount - 1)) * availableHeight;
+            positions[nodeId] = { x: xPos, y: yPos };
+        });
+    });
+    
+    return positions;
+}
+
+function drawPreviewEdge(positions, edge) {
+    const from = positions[edge.from];
+    const to = positions[edge.to];
+    if (!from || !to) return;
+    
+    const nodeRadius = 22;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist === 0) return;
+    
+    const nx = dx / dist;
+    const ny = dy / dist;
+    
+    const startX = from.x + nx * nodeRadius;
+    const startY = from.y + ny * nodeRadius;
+    const endX = to.x - nx * nodeRadius;
+    const endY = to.y - ny * nodeRadius;
+    
+    // Check for reverse edge
+    const hasReverse = customGraph.edges.some(e => e.from === edge.to && e.to === edge.from);
+    const curveOffset = hasReverse ? 30 : 15;
+    
+    const midX = (startX + endX) / 2 - ny * curveOffset;
+    const midY = (startY + endY) / 2 + nx * curveOffset;
+    
+    // Draw line
+    previewCtx.strokeStyle = '#667eea';
+    previewCtx.lineWidth = 2;
+    previewCtx.beginPath();
+    previewCtx.moveTo(startX, startY);
+    previewCtx.quadraticCurveTo(midX, midY, endX, endY);
+    previewCtx.stroke();
+    
+    // Draw arrow
+    const t = 0.85;
+    const arrowX = (1-t)*(1-t)*startX + 2*(1-t)*t*midX + t*t*endX;
+    const arrowY = (1-t)*(1-t)*startY + 2*(1-t)*t*midY + t*t*endY;
+    const t2 = 0.8;
+    const arrowPrevX = (1-t2)*(1-t2)*startX + 2*(1-t2)*t2*midX + t2*t2*endX;
+    const arrowPrevY = (1-t2)*(1-t2)*startY + 2*(1-t2)*t2*midY + t2*t2*endY;
+    const angle = Math.atan2(arrowY - arrowPrevY, arrowX - arrowPrevX);
+    
+    previewCtx.fillStyle = '#667eea';
+    previewCtx.beginPath();
+    previewCtx.moveTo(arrowX + 6 * Math.cos(angle), arrowY + 6 * Math.sin(angle));
+    previewCtx.lineTo(arrowX - 6 * Math.cos(angle - Math.PI / 6), arrowY - 6 * Math.sin(angle - Math.PI / 6));
+    previewCtx.lineTo(arrowX - 6 * Math.cos(angle + Math.PI / 6), arrowY - 6 * Math.sin(angle + Math.PI / 6));
+    previewCtx.closePath();
+    previewCtx.fill();
+    
+    // Draw capacity label
+    const labelT = 0.5;
+    const labelX = (1-labelT)*(1-labelT)*startX + 2*(1-labelT)*labelT*midX + labelT*labelT*endX;
+    const labelY = (1-labelT)*(1-labelT)*startY + 2*(1-labelT)*labelT*midY + labelT*labelT*endY;
+    
+    previewCtx.fillStyle = 'white';
+    previewCtx.beginPath();
+    previewCtx.arc(labelX, labelY, 14, 0, 2 * Math.PI);
+    previewCtx.fill();
+    previewCtx.strokeStyle = '#667eea';
+    previewCtx.lineWidth = 1.5;
+    previewCtx.stroke();
+    
+    previewCtx.fillStyle = '#667eea';
+    previewCtx.font = 'bold 11px Arial';
+    previewCtx.textAlign = 'center';
+    previewCtx.textBaseline = 'middle';
+    previewCtx.fillText(edge.capacity, labelX, labelY);
+}
+
+function drawPreviewNode(positions, nodeId) {
+    const pos = positions[nodeId];
+    if (!pos) return;
+    
+    const radius = 22;
+    
+    let color1, color2, label;
+    if (nodeId === customGraph.source) {
+        color1 = '#28a745';
+        color2 = '#20c997';
+        label = 'S';
+    } else if (nodeId === customGraph.sink) {
+        color1 = '#dc3545';
+        color2 = '#ff6b7a';
+        label = 'T';
+    } else {
+        color1 = '#667eea';
+        color2 = '#764ba2';
+        label = nodeId.toString();
+    }
+    
+    // Draw shadow
+    previewCtx.save();
+    previewCtx.shadowBlur = 8;
+    previewCtx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    previewCtx.shadowOffsetX = 2;
+    previewCtx.shadowOffsetY = 2;
+    
+    const gradient = previewCtx.createRadialGradient(pos.x - 4, pos.y - 4, 0, pos.x, pos.y, radius);
+    gradient.addColorStop(0, color2);
+    gradient.addColorStop(1, color1);
+    
+    previewCtx.fillStyle = gradient;
+    previewCtx.beginPath();
+    previewCtx.arc(pos.x, pos.y, radius, 0, 2 * Math.PI);
+    previewCtx.fill();
+    previewCtx.restore();
+    
+    // Border
+    previewCtx.strokeStyle = '#fff';
+    previewCtx.lineWidth = 3;
+    previewCtx.beginPath();
+    previewCtx.arc(pos.x, pos.y, radius, 0, 2 * Math.PI);
+    previewCtx.stroke();
+    
+    // Label
+    previewCtx.fillStyle = '#fff';
+    previewCtx.font = 'bold 14px Arial';
+    previewCtx.textAlign = 'center';
+    previewCtx.textBaseline = 'middle';
+    previewCtx.fillText(label, pos.x, pos.y);
+}
+
+function playCustomGraph() {
+    if (customGraph.edges.length === 0) {
+        alert('Please add at least one edge');
+        return;
+    }
+    
+    // Create level data from custom graph
+    levelData = {
+        id: 'custom',
+        name: 'Custom Graph',
+        description: 'Your custom flow network',
+        nodes: customGraph.nodes,
+        edges: [...customGraph.edges],
+        source: customGraph.source,
+        sink: customGraph.sink
+    };
+    
+    currentLevel = 'custom';
+    
+    // Update UI
+    document.getElementById('level-title').textContent = 'Custom Graph';
+    document.getElementById('level-description').textContent = 'Your custom flow network - find the maximum flow!';
+    
+    // Hide progress for custom level
+    const progressSection = document.getElementById('progress-section');
+    if (progressSection) progressSection.style.display = 'none';
+    
+    // Initialize flows
+    flows = {};
+    flowAnimations = {};
+    levelData.edges.forEach(edge => {
+        flows[`${edge.from}-${edge.to}`] = 0;
+    });
+    
+    // Show game area
+    document.getElementById('graph-builder').style.display = 'none';
+    document.getElementById('game-area').style.display = 'block';
+    
+    // Create flow controls
+    createFlowControls();
+    
+    // Draw graph after DOM update
+    requestAnimationFrame(() => {
+        calculateNodePositions();
+        drawGraph();
+        startAnimation();
+    });
+    
+    clearStatusMessage();
 }

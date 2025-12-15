@@ -25,6 +25,79 @@
                     </button>
                     {% endfor %}
                 </div>
+                
+                <div class="custom-graph-section">
+                    <h2>Or Create Your Own</h2>
+                    <button id="create-custom-btn" class="btn btn-custom">
+                        <span>✏️ Custom Graph Builder</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Graph Builder -->
+            <div id="graph-builder" class="graph-builder" style="display: none;">
+                <div class="builder-header">
+                    <h2>🔧 Custom Graph Builder</h2>
+                    <p>Create your own flow network and test your skills!</p>
+                </div>
+                
+                <div class="builder-content">
+                    <div class="builder-controls">
+                        <!-- Node Controls -->
+                        <div class="builder-section">
+                            <h3>Nodes</h3>
+                            <div class="node-controls">
+                                <label>Number of nodes:</label>
+                                <input type="number" id="node-count" min="2" max="10" value="4">
+                                <button id="set-nodes-btn" class="btn btn-small">Set Nodes</button>
+                            </div>
+                            <div class="source-sink-controls">
+                                <div>
+                                    <label>Source node:</label>
+                                    <select id="source-select"></select>
+                                </div>
+                                <div>
+                                    <label>Sink node:</label>
+                                    <select id="sink-select"></select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Edge Controls -->
+                        <div class="builder-section">
+                            <h3>Add Edge</h3>
+                            <div class="edge-controls">
+                                <div class="edge-inputs">
+                                    <select id="edge-from"></select>
+                                    <span>→</span>
+                                    <select id="edge-to"></select>
+                                    <input type="number" id="edge-capacity" min="1" max="100" value="10" placeholder="Capacity">
+                                </div>
+                                <button id="add-edge-btn" class="btn btn-small btn-primary">Add Edge</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Edge List -->
+                        <div class="builder-section">
+                            <h3>Edges <span id="edge-count">(0)</span></h3>
+                            <div id="edge-list" class="edge-list"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview Canvas -->
+                    <div class="builder-preview">
+                        <h3>Preview</h3>
+                        <div class="preview-container">
+                            <canvas id="preview-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="builder-actions">
+                    <button id="play-custom-btn" class="btn btn-primary" disabled>▶ Play This Graph</button>
+                    <button id="clear-graph-btn" class="btn btn-secondary">Clear All</button>
+                    <button id="back-from-builder-btn" class="btn btn-secondary">Back to Levels</button>
+                </div>
             </div>
 
             <!-- Game Area -->
@@ -59,10 +132,12 @@
                 </div>
 
                 <!-- Progress Bar -->
-                <div class="progress-bar">
-                    <div id="level-progress" class="progress-fill"></div>
+                <div id="progress-section" class="progress-section">
+                    <div class="progress-bar">
+                        <div id="level-progress" class="progress-fill"></div>
+                    </div>
+                    <span id="level-counter"></span>
                 </div>
-                <span id="level-counter"></span>
             </div>
         </div>
     </div>
